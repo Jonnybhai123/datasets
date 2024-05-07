@@ -1,0 +1,92 @@
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.feature_extraction.text import TfidfVectorizer # raw data into matrix
+from sklearn.neighbors import KNeighborsClassifier
+
+# KNeighborsClassifier:
+#supervised class
+#It works by finding the most similar instances (neighbors) to a given data point
+# classification and regression tasks in machine learning
+# non-parametric algorithm. This means it doesnt make any assumptions about the underlying data distribution
+
+
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+import seaborn as sns
+import matplotlib.pyplot as plt
+import nltk
+
+# nltk(natural language toolkit)
+# NLTK provides functions for breaking text into individual words or sentences.
+# reducing words to their base or root forms.
+# tools for identifying named entities (such as names of people, organizations, locations, etc.) in text.
+# parsers for syntax analysis of sentences, including recursive descent, shift-reduce, and probabilistic parsers
+# building and evaluating classification models, such as Naive Bayes, Decision
+# Trees, Maximum Entropy, and more.
+
+from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize
+from nltk.stem import WordNetLemmatizer
+
+# Download NLTK resources
+nltk.download('stopwords')
+nltk.download('punkt')
+nltk.download('wordnet')
+
+# Load the dataset
+df = pd.read_csv('/content/sample_data/IMDB Dataset.csv')
+
+# Preprocess text data
+stop_words = set(stopwords.words('english'))# remove woord which has not much imp eg. is and the
+lemmatizer = WordNetLemmatizer()# running converted into run
+
+def preprocess_text(text):
+    tokens = word_tokenize(text)
+    tokens = [word for word in tokens if word.lower() not in stop_words]
+    tokens = [lemmatizer.lemmatize(word.lower()) for word in tokens]
+    return ' '.join(tokens)
+
+df['review'] = df['review'].apply(preprocess_text)
+
+# Split the dataset into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(df['review'], df['sentiment'], test_size=0.2, random_state=42)
+
+# Vectorize text data using TF-IDF
+# term frequency -inverse document frequency
+# It's calculated as the number of times a term 𝑡 appears in a document d
+# divided by the total number of terms in the document.
+# TF-IDF combines TF and IDF to assign weights to terms in a document.
+
+vectorizer = TfidfVectorizer(max_features=5000)
+X_train_bow = vectorizer.fit_transform(X_train)
+X_test_bow = vectorizer.transform(X_test)
+
+# Train KNN classifier
+clf = KNeighborsClassifier(n_neighbors=5)
+clf.fit(X_train_bow, y_train)
+
+# Evaluate the classifier
+# accuracy: Accuracy measures the proportion of correctly classified instances
+# out of the total number of instances in the dataset. Its calculated as the sum
+# of true positive (TP) and true negative (TN) predictions divided by the total
+# number of predictions. Accuracy = (TP + TN) / (TP + TN + FP + FN)
+
+# clasification report:
+# It typically includes metrics such as precision, recall, F1-score, and support.
+# Precision: The proportion of true positive predictions out of all positive predictions.
+# Recall (also known as sensitivity or true positive rate): The proportion of true positive predictions out of all actual positive instances.
+# F1-score: The harmonic mean of precision and recall, providing a balance between the two metrics.
+# Support: The number of actual occurrences of each class in the dataset.
+
+y_pred = clf.predict(X_test_bow)
+accuracy = accuracy_score(y_test, y_pred)
+print("Accuracy:", accuracy)
+print("\nClassification Report:")
+print(classification_report(y_test, y_pred))
+
+# Visualize confusion matrix
+conf_matrix = confusion_matrix(y_test, y_pred)
+sns.heatmap(conf_matrix, annot=True, fmt="d", cmap="Blues")
+plt.xlabel('Predicted Label')
+plt.ylabel('True Label')
+plt.title('Confusion Matrix')
+plt.show()

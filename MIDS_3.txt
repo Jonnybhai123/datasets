@@ -1,0 +1,30 @@
+import re
+
+# Define positive and negative polarity words
+positive_words = ['good', 'great', 'excellent', 'love']
+negative_words = ['bad', 'terrible', 'awful', 'hate']
+
+# Sample document
+document = "I love this movie, it's bad!"
+
+# Preprocess text
+def preprocess_text(text):
+    text = text.lower()
+    text = re.sub(r'[^\w\s]', '', text)  # Remove punctuation
+    return text.split()
+
+tokens = preprocess_text(document)
+
+# Count positive and negative polarity words
+positive_count = sum(1 for word in tokens if word in positive_words)
+negative_count = sum(1 for word in tokens if word in negative_words)
+
+# Determine sentiment based on counts
+if positive_count > negative_count:
+    sentiment = 'positive'
+elif negative_count > positive_count:
+    sentiment = 'negative'
+else:
+    sentiment = 'neutral'  # Handle neutral sentiment
+
+print("Document sentiment:", sentiment)

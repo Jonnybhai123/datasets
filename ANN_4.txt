@@ -1,0 +1,66 @@
+import numpy as np
+
+class ART1:
+    def __init__(self, n, m, rho, alpha, beta):
+        self.n = n  # Number of input nodes
+        self.m = m  # Number of output nodes
+        self.rho = rho  # Vigilance parameter
+        self.alpha = alpha  # Choice parameter for input nodes
+        self.beta = beta  # Choice parameter for output nodes
+
+        self.W = np.random.rand(self.m, self.n)  # Weight matrix
+        self.T = np.zeros(self.m)  # Template vector
+
+    def activate(self, X):
+        while True:
+            for i in range(self.m):
+                Y = np.dot(X, self.W[i])  # Matrix multiplication
+                if np.sum(Y) >= np.sum(self.beta * self.W[i]):
+                    self.T[i] = 1
+                else:
+                    self.T[i] = 0
+
+            if np.sum(self.T) == 0:
+                print("No match found. Decreasing vigilance.")
+                self.rho *= 0.9
+                continue
+
+            # Check for match between input and template
+            sum_X = np.sum(X)
+            if sum_X == 0:
+                print("Input pattern is all zeros. Skipping normalization.")
+                continue
+
+            Y = X * self.T[:, np.newaxis]  # Broadcasting to match dimensions
+            if np.sum(Y) / sum_X < self.rho:
+                print("No match found. Decreasing vigilance.")
+                self.rho *= 0.9
+            else:
+                print("Match found. Increasing vigilance.")
+                break
+
+        return np.argmax(self.T)
+
+    def learn(self, X, k):
+        self.W[k] = (self.alpha * X + self.W[k]) / (1 + self.alpha)
+
+# Example usage
+if __name__ == "__main__":
+    # Create an ART1 instance with 10 input nodes and 5 output nodes
+    art = ART1(n=10, m=5, rho=0.9, alpha=0.1, beta=0.5)
+
+    # Input patterns (binary vectors)
+    patterns = np.array([
+        [1, 0, 1, 1, 0, 0, 1, 1, 1, 0],
+        [0, 1, 1, 0, 0, 1, 1, 0, 0, 1],
+        [1, 1, 0, 1, 0, 1, 0, 1, 0, 1]
+    ])
+
+    # Test the ART1 network
+    for pattern in patterns:
+        print("Input pattern:", pattern)
+        cluster_id = art.activate(pattern)
+        print("Cluster ID:", cluster_id)
+        art.learn(pattern, cluster_id)
+        print("Updated weight matrix:\n", art.W)
+        print()

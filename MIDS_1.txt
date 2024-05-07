@@ -1,0 +1,39 @@
+import numpy as np
+import pandas as pd
+df = pd.read_csv("titanic_dataset.csv")
+
+df.head(5)
+
+df.info()
+
+df.describe()
+
+df.isnull().sum()
+
+-------------------------------------------------------------
+
+import pandas as pd
+import numpy as np
+
+train_df=pd.read_csv("copy path")
+test_df=pd.read_csv("copy path")
+
+
+train_df.columns
+train_df.head(10)
+train_df.tail()
+train_df.describe()
+
+
+train_df.info()
+test_df.info()
+
+
+print(train_df.shape)
+print(train_df.isnull().sum())
+
+train_df.Cabin=train_df.Cabin.fillna("unknown")
+print(train_df.isnull().sum())
+
+print(train_df.dtype)
+
